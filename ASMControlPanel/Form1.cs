@@ -129,8 +129,7 @@ namespace ASMControlPanel {
         private string GetSpecificProjectFolderName(string dir) {
             logger("-> GetSpecificProjectFolderName(", dir, ")");
             string fileName = "";
-
-            /*            try
+            /* try
                         {
                             DirectoryInfo di = new DirectoryInfo(dir);
                             fileName = di.GetFiles("Project*").OrderByDescending(f => f.LastWriteTime).First().Name;
