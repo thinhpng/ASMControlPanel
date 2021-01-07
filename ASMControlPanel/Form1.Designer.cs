@@ -33,10 +33,10 @@
             this.label1 = new System.Windows.Forms.Label();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.label2 = new System.Windows.Forms.Label();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
-            this.checkBox2 = new System.Windows.Forms.CheckBox();
-            this.checkBox3 = new System.Windows.Forms.CheckBox();
-            this.checkBox4 = new System.Windows.Forms.CheckBox();
+            this.checkBoxRC1 = new System.Windows.Forms.CheckBox();
+            this.checkBoxRC2 = new System.Windows.Forms.CheckBox();
+            this.checkBoxRC3 = new System.Windows.Forms.CheckBox();
+            this.checkBoxRC4 = new System.Windows.Forms.CheckBox();
             this.comboBox2 = new System.Windows.Forms.ComboBox();
             this.button2 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
@@ -89,49 +89,49 @@
             this.label2.Text = "Pick RC you want to simulate if needed";
             this.label2.Click += new System.EventHandler(this.label2_Click);
             // 
-            // checkBox1
+            // checkBoxRC1
             // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(219, 64);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(47, 17);
-            this.checkBox1.TabIndex = 4;
-            this.checkBox1.Text = "RC1";
-            this.checkBox1.UseVisualStyleBackColor = true;
-            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
+            this.checkBoxRC1.AutoSize = true;
+            this.checkBoxRC1.Location = new System.Drawing.Point(219, 64);
+            this.checkBoxRC1.Name = "checkBoxRC1";
+            this.checkBoxRC1.Size = new System.Drawing.Size(47, 17);
+            this.checkBoxRC1.TabIndex = 4;
+            this.checkBoxRC1.Text = "RC1";
+            this.checkBoxRC1.UseVisualStyleBackColor = true;
+            this.checkBoxRC1.CheckedChanged += new System.EventHandler(this.checkBoxRC1_CheckedChanged);
             // 
-            // checkBox2
+            // checkBoxRC2
             // 
-            this.checkBox2.AutoSize = true;
-            this.checkBox2.Location = new System.Drawing.Point(281, 64);
-            this.checkBox2.Name = "checkBox2";
-            this.checkBox2.Size = new System.Drawing.Size(47, 17);
-            this.checkBox2.TabIndex = 5;
-            this.checkBox2.Text = "RC2";
-            this.checkBox2.UseVisualStyleBackColor = true;
-            this.checkBox2.CheckedChanged += new System.EventHandler(this.checkBox2_CheckedChanged);
+            this.checkBoxRC2.AutoSize = true;
+            this.checkBoxRC2.Location = new System.Drawing.Point(281, 64);
+            this.checkBoxRC2.Name = "checkBoxRC2";
+            this.checkBoxRC2.Size = new System.Drawing.Size(47, 17);
+            this.checkBoxRC2.TabIndex = 5;
+            this.checkBoxRC2.Text = "RC2";
+            this.checkBoxRC2.UseVisualStyleBackColor = true;
+            this.checkBoxRC2.CheckedChanged += new System.EventHandler(this.checkBoxRC2_CheckedChanged);
             // 
-            // checkBox3
+            // checkBoxRC3
             // 
-            this.checkBox3.AutoSize = true;
-            this.checkBox3.Location = new System.Drawing.Point(346, 65);
-            this.checkBox3.Name = "checkBox3";
-            this.checkBox3.Size = new System.Drawing.Size(47, 17);
-            this.checkBox3.TabIndex = 6;
-            this.checkBox3.Text = "RC3";
-            this.checkBox3.UseVisualStyleBackColor = true;
-            this.checkBox3.CheckedChanged += new System.EventHandler(this.checkBox3_CheckedChanged);
+            this.checkBoxRC3.AutoSize = true;
+            this.checkBoxRC3.Location = new System.Drawing.Point(346, 65);
+            this.checkBoxRC3.Name = "checkBoxRC3";
+            this.checkBoxRC3.Size = new System.Drawing.Size(47, 17);
+            this.checkBoxRC3.TabIndex = 6;
+            this.checkBoxRC3.Text = "RC3";
+            this.checkBoxRC3.UseVisualStyleBackColor = true;
+            this.checkBoxRC3.CheckedChanged += new System.EventHandler(this.checkBoxRC3_CheckedChanged);
             // 
-            // checkBox4
+            // checkBoxRC4
             // 
-            this.checkBox4.AutoSize = true;
-            this.checkBox4.Location = new System.Drawing.Point(409, 64);
-            this.checkBox4.Name = "checkBox4";
-            this.checkBox4.Size = new System.Drawing.Size(47, 17);
-            this.checkBox4.TabIndex = 7;
-            this.checkBox4.Text = "RC4";
-            this.checkBox4.UseVisualStyleBackColor = true;
-            this.checkBox4.CheckedChanged += new System.EventHandler(this.checkBox4_CheckedChanged);
+            this.checkBoxRC4.AutoSize = true;
+            this.checkBoxRC4.Location = new System.Drawing.Point(409, 64);
+            this.checkBoxRC4.Name = "checkBoxRC4";
+            this.checkBoxRC4.Size = new System.Drawing.Size(47, 17);
+            this.checkBoxRC4.TabIndex = 7;
+            this.checkBoxRC4.Text = "RC4";
+            this.checkBoxRC4.UseVisualStyleBackColor = true;
+            this.checkBoxRC4.CheckedChanged += new System.EventHandler(this.checkBoxRC4_CheckedChanged);
             // 
             // comboBox2
             // 
@@ -215,10 +215,10 @@
             this.Controls.Add(this.button3);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.comboBox2);
-            this.Controls.Add(this.checkBox4);
-            this.Controls.Add(this.checkBox3);
-            this.Controls.Add(this.checkBox2);
-            this.Controls.Add(this.checkBox1);
+            this.Controls.Add(this.checkBoxRC4);
+            this.Controls.Add(this.checkBoxRC3);
+            this.Controls.Add(this.checkBoxRC2);
+            this.Controls.Add(this.checkBoxRC1);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.comboBox1);
             this.Controls.Add(this.label1);
@@ -241,10 +241,10 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.CheckBox checkBox1;
-        private System.Windows.Forms.CheckBox checkBox2;
-        private System.Windows.Forms.CheckBox checkBox3;
-        private System.Windows.Forms.CheckBox checkBox4;
+        private System.Windows.Forms.CheckBox checkBoxRC1;
+        private System.Windows.Forms.CheckBox checkBoxRC2;
+        private System.Windows.Forms.CheckBox checkBoxRC3;
+        private System.Windows.Forms.CheckBox checkBoxRC4;
         private System.Windows.Forms.ComboBox comboBox2;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button3;

@@ -37,6 +37,7 @@ namespace ASMControlPanel {
         bool RC3EXIST = false;
         bool RC4EXIST = false;
         bool needSwap = true;
+        string P1FTXT, P2FTXT, P3FTXT, P4FTXT;
 
         bool IS_RCSIM = false;
         //public bool IS_RCSIM { get { return IS_RCSIM; } set { IS_RCSIM = value; } }
@@ -69,6 +70,9 @@ namespace ASMControlPanel {
             PrepareProjectSelection();
             PrepareToolMapSelection();
             PrepareToolVncSelection();
+            logger("*****************************************************");
+            logger("***********  Initialization Completed!!!  ***********");
+            logger("*****************************************************");
         }
 
         private bool IsRCSimRunning() {
@@ -95,16 +99,16 @@ namespace ASMControlPanel {
             logger("-> GetRCSimStatus()");
             RCSIM_FILE = new DirectoryInfo(DEFAULT_RCSIM_DIR).GetFiles("PMC*_Sim.txt").OrderByDescending(f => f.LastWriteTime).First().Name;
             if (RCSIM_FILE.Contains("PMC1")) {
-                checkBox1.Checked = true;
+                checkBoxRC1.Checked = true;
                 SELECTED_RC = "PMC1";
             } else if (RCSIM_FILE.Contains("PMC2")) {
-                checkBox2.Checked = true;
+                checkBoxRC2.Checked = true;
                 SELECTED_RC = "PMC2";
             } else if (RCSIM_FILE.Contains("PMC3")) {
-                checkBox3.Checked = true;
+                checkBoxRC3.Checked = true;
                 SELECTED_RC = "PMC3";
             } else if (RCSIM_FILE.Contains("PMC4")) {
-                checkBox4.Checked = true;
+                checkBoxRC4.Checked = true;
                 SELECTED_RC = "PMC4";
             }
             logger("SELECTED_RC: ", SELECTED_RC);
@@ -159,6 +163,24 @@ namespace ASMControlPanel {
             return fileName;
         }
 
+        private void GetSpecificPMInfo(string pmConfigFile) {
+            logger("-> GetSpecificPMInfo: ", pmConfigFile);
+            using (StreamReader inFile = new StreamReader(pmConfigFile, false)) {
+                Regex r = new Regex(@"Type of Equipment\s+=\s(.*)", RegexOptions.IgnoreCase);
+                string line = inFile.ReadLine(); //throw away the header line
+                while ((line = inFile.ReadLine()) != null) {
+                    Match m = r.Match(line);
+                    if (m.Success) {
+                        RC_TYPE = m.Groups[1].Value;
+                        logger("RC_TYPE: ", RC_TYPE);
+                        PMSIMFILE_DIR = Path.Combine(PMSIMFILE_DIR, RC_TYPE.ToUpper());
+                        logger("PMSIMFILE_DIR: ", PMSIMFILE_DIR);
+                        break;
+                    }
+                }
+            }
+        }
+
         private void SetRCCheckboxes(string[] fileNames) {
             logger("-> SetRCCheckboxes()");
             RC1EXIST = RC2EXIST = RC3EXIST = RC4EXIST = false;
@@ -166,28 +188,32 @@ namespace ASMControlPanel {
             foreach (string f in fileNames) {
                 if (f.Contains("p1f")) {
                     RC1EXIST = true;
-                    logger("RC1 available!");
+                    P1FTXT = f;
+                    logger("RC1 available! ", P1FTXT);                    
                 }
 
                 if (f.Contains("p2f")) {
                     RC2EXIST = true;
-                    logger("RC2 available!");
+                    P2FTXT = f;
+                    logger("RC2 available! ", P2FTXT);
                 }
 
                 if (f.Contains("p3f")) {
                     RC3EXIST = true;
-                    logger("RC3 available!");
+                    P3FTXT = f;
+                    logger("RC3 available! ", P3FTXT);
                 }
 
                 if (f.Contains("p4f")) {
                     RC4EXIST = true;
-                    logger("RC4 available!");
+                    P4FTXT = f;
+                    logger("RC4 available! ", P4FTXT);
                 }
             }
-            checkBox1.Enabled = RC1EXIST;
-            checkBox2.Enabled = RC2EXIST;
-            checkBox3.Enabled = RC3EXIST;
-            checkBox4.Enabled = RC4EXIST;
+            checkBoxRC1.Enabled = RC1EXIST;
+            checkBoxRC2.Enabled = RC2EXIST;
+            checkBoxRC3.Enabled = RC3EXIST;
+            checkBoxRC4.Enabled = RC4EXIST;
         }
 
         private void PrepareToolVncSelection() {
@@ -282,6 +308,7 @@ namespace ASMControlPanel {
                 if (String.IsNullOrEmpty(LASTSELECTED)) { //ASMControlPanel just starts up. Default selection is the first item in the list  
                     if (Directory.Exists(DEFAULT_PROJECT_DIR)) {
                         comboBox1.SelectedItem = DEFAULT_PROJECT_DIR;
+                        //GetPlatformInfo(DEFAULT_PROJECT_DIR);
                     } else {
                         comboBox1.SelectedIndex = 0;
                     }                    
@@ -325,7 +352,6 @@ namespace ASMControlPanel {
             string fullPathDir = Path.Combine(projDir, DEFAULT_CONFIG_DIR);
             //logger("fullPathDir: ", fullPathDir);
 
-
             if (new DirectoryInfo(fullPathDir).GetFiles("EagleXP.*").Count() > 0) {
                 PLATFORM = "EagleXP";
                 PMSIMFILE_DIR = @".\ASM\ALD";
@@ -341,12 +367,12 @@ namespace ASMControlPanel {
 
             //SetRCProcesses();
             string[] filenames = Directory.GetFiles(fullPathDir, PLATFORM + ".p*f.txt"); //epi_beta.p2f.txt (p44 might name it that way) 
-            SetRCCheckboxes(filenames);
+            //SetRCCheckboxes(filenames);
 
-            if (filenames.Length > 0)
+/*            if (filenames.Length > 0)
                 RC_CONFIG_FILE = filenames[0]; //there should be only one matched with module
 
-            logger("RC_CONFIG_FILE: ", RC_CONFIG_FILE);
+            logger("RC_CONFIG_FILE: ", RC_CONFIG_FILE);*/
 
             //StreamReader file = new StreamReader(RC_CONFIG_FILE);
             //Regex r = new Regex(@"Type of Equipment\s+=\s(.*)", RegexOptions.IgnoreCase);
@@ -635,6 +661,7 @@ namespace ASMControlPanel {
 
         private void StartStop_Click(object sender, EventArgs e) {
             logger("\t>>>> Button clicked: ", StartStop_Button.Text, " <<<<");
+            string eiStatus;
             bool RcSimOption = false;
             SetRCSIMFeatureVisible(RcSimOption);
 
@@ -687,6 +714,7 @@ namespace ASMControlPanel {
                 StartStop_Button.BackColor = Color.Salmon;
                 comboBox1.SelectedItem = DEFAULT_PROJECT_DIR;
                 comboBox1.Refresh();
+                eiStatus = "EI START";
             } else { //There was a click on "STOP" button
                 needSwap = true; //Ready for newly possible project change in user's selection 
                 if (LASTSELECTED == DEFAULT_PROJECT_DIR)
@@ -703,10 +731,14 @@ namespace ASMControlPanel {
                 comboBox1.Enabled = true;
                 RcSimOption = true;
                 RCSIMSelection(false);
+                eiStatus = "EI STOP";
             }
 
-            GetPlatformInfo(DEFAULT_PROJECT_DIR);
+            //GetPlatformInfo(DEFAULT_PROJECT_DIR);
             SetRCSIMFeatureVisible(RcSimOption);
+            logger("*********************************************");
+            logger("***********  ", eiStatus, " Completed!!! **********");
+            logger("*********************************************");
         }
 
         private bool isSelectedProjectCurrentProject() {
@@ -808,36 +840,36 @@ namespace ASMControlPanel {
             }
         }
 
-        private void checkBox1_CheckedChanged(object sender, EventArgs e) {
-            logger("->checkBox1_CheckedChanged()");
+        private void checkBoxRC1_CheckedChanged(object sender, EventArgs e) {
+            logger("->checkBoxRC1_CheckedChanged()");
             SELECTED_RC = "PMC1";
             MODULE = ".p1f.txt";
             if (StartStop_Button.Text == "START")
-                RCCheckBoxManager(checkBox1.Checked, PLATFORM + MODULE, e);
+                RCCheckBoxManager(checkBoxRC1.Checked, PLATFORM + MODULE, e);
         }
 
-        private void checkBox2_CheckedChanged(object sender, EventArgs e) {
-            logger("->checkBox2_CheckedChanged()");
+        private void checkBoxRC2_CheckedChanged(object sender, EventArgs e) {
+            logger("->checkBoxRC2_CheckedChanged()");
             SELECTED_RC = "PMC2";
             MODULE = ".p2f.txt";
             if (StartStop_Button.Text == "START")
-                RCCheckBoxManager(checkBox2.Checked, PLATFORM + MODULE, e);
+                RCCheckBoxManager(checkBoxRC2.Checked, PLATFORM + MODULE, e);
         }
 
-        private void checkBox3_CheckedChanged(object sender, EventArgs e) {
-            logger("->checkBox3_CheckedChanged()");
+        private void checkBoxRC3_CheckedChanged(object sender, EventArgs e) {
+            logger("->checkBoxRC3_CheckedChanged()");
             SELECTED_RC = "PMC3";
             MODULE = ".p3f.txt";
             if (StartStop_Button.Text == "START")
-                RCCheckBoxManager(checkBox3.Checked, PLATFORM + MODULE, e);
+                RCCheckBoxManager(checkBoxRC3.Checked, PLATFORM + MODULE, e);
         }
 
-        private void checkBox4_CheckedChanged(object sender, EventArgs e) {
-            logger("->checkBox4_CheckedChanged()");
+        private void checkBoxRC4_CheckedChanged(object sender, EventArgs e) {
+            logger("->checkBoxRC4_CheckedChanged()");
             SELECTED_RC = "PMC4";
             MODULE = ".p4f.txt";
             if (StartStop_Button.Text == "START")
-                RCCheckBoxManager(checkBox4.Checked, PLATFORM + MODULE, e);
+                RCCheckBoxManager(checkBoxRC4.Checked, PLATFORM + MODULE, e);
         }
 
         private void RCCheckBoxManager(bool option, string configFile, EventArgs e) { //false: Reset, true: Set
@@ -852,20 +884,20 @@ namespace ASMControlPanel {
 
             if (option) {
                 comboBox1.Enabled = false;
-                if (checkBox1.CheckState == 0 || (SELECTED_RC == "PMC1" && !File.Exists(RC_CONFIG_FILE))) {
-                    checkBox1.Enabled = false;
+                if (checkBoxRC1.CheckState == 0 || (SELECTED_RC == "PMC1" && !File.Exists(RC_CONFIG_FILE))) {
+                    checkBoxRC1.Enabled = false;
                 }
 
-                if (checkBox2.CheckState == 0 || (SELECTED_RC == "PMC2" && !File.Exists(RC_CONFIG_FILE))) {
-                    checkBox2.Enabled = false;
+                if (checkBoxRC2.CheckState == 0 || (SELECTED_RC == "PMC2" && !File.Exists(RC_CONFIG_FILE))) {
+                    checkBoxRC2.Enabled = false;
                 }
 
-                if (checkBox3.CheckState == 0 || (SELECTED_RC == "PMC3" && !File.Exists(RC_CONFIG_FILE))) {
-                    checkBox3.Enabled = false;
+                if (checkBoxRC3.CheckState == 0 || (SELECTED_RC == "PMC3" && !File.Exists(RC_CONFIG_FILE))) {
+                    checkBoxRC3.Enabled = false;
                 }
 
-                if (checkBox4.CheckState == 0 || (SELECTED_RC == "PMC4" && !File.Exists(RC_CONFIG_FILE))) {
-                    checkBox4.Enabled = false;
+                if (checkBoxRC4.CheckState == 0 || (SELECTED_RC == "PMC4" && !File.Exists(RC_CONFIG_FILE))) {
+                    checkBoxRC4.Enabled = false;
                 }
 
                 if (Directory.Exists(DEFAULT_PROJECT_DIR) && StartStop_Button.Text == "START")
@@ -892,7 +924,7 @@ namespace ASMControlPanel {
 
         private bool IsPMSimReady() {
             logger("->IsPMSimReady()");
-            bool areIdentical = false;
+            bool isIdentical = false;
 
             if (File.Exists(Path.Combine(DEFAULT_RCSIM_DIR, SELECTED_RC + "_Sim.txt"))) {
                 if (Directory.Exists(DEFAULT_RCSIM_DIR)) {
@@ -912,10 +944,11 @@ namespace ASMControlPanel {
                     // identical file lists, based on the custom file comparer  
                     // that is defined in the FileCompare class.  
                     // The query executes immediately because it returns a bool.  
-                    areIdentical = sourceList.SequenceEqual(targetList, myFileCompare);
+                    isIdentical = sourceList.SequenceEqual(targetList, myFileCompare);                    
                 }
             }
-            return areIdentical;
+            logger("Are they identical? ", isIdentical);
+            return isIdentical;
         }
 
         void PrepareRCSimulation(bool option) { //true: enable PM simulation, false: disable 
@@ -931,14 +964,16 @@ namespace ASMControlPanel {
                 ModifyMCIFSimFile("=False", "=True"); //No RC simulation checked so disable it
  // comment this block to let it every time deleting existing files under c:\ASM\Project\Bin to copy new files
             } else if (IsPMSimReady()) {
-                logger("PMSim Already Ready!");
+                logger("PMSim Previously Existed and Ready!");
                 ShareProjectFolder();
                 ModifyMCIFSimFile("=True", "=False"); //RC simulation option checked so enable it
 
                 if (!File.Exists(STARTPMBAT)) {
                     CreatePMStartBatFile();
                 }
-                RunStartPMBatFile();
+                //RCSIM_FILE = Path.Combine(DEFAULT_PROJECT_DIR, SELECTED_RC, "Bin", SELECTED_RC + specificExt);
+                //StartWNetWakeUpProcess();
+                RunStartPMBatFile();                
             } else {
                 if (LASTSELECTED != RUNNING_PROJECT && LASTSELECTED != DEFAULT_PROJECT_DIR) {
                     logger("Attempt running PM Sim on newly switching project");
@@ -1046,16 +1081,16 @@ namespace ASMControlPanel {
             logger("-> RCSIMSelection(", selection, ")");
             switch (SELECTED_RC) {
                 case "PMC1":
-                    checkBox1.Checked = selection;
+                    checkBoxRC1.Checked = selection;
                     break;
                 case "PMC2":
-                    checkBox2.Checked = selection;
+                    checkBoxRC2.Checked = selection;
                     break;
                 case "PMC3":
-                    checkBox3.Checked = selection;
+                    checkBoxRC3.Checked = selection;
                     break;
                 case "PMC4":
-                    checkBox4.Checked = selection;
+                    checkBoxRC4.Checked = selection;
                     break;
             }
         }
@@ -1064,16 +1099,17 @@ namespace ASMControlPanel {
             logger("-> SetRCSIMFeatureVisible(", state, ")");
             //RCSIMSelection(true);
             label2.Enabled = state;
-            checkBox1.Enabled = state & RC1EXIST;
-            checkBox2.Enabled = state & RC2EXIST;
-            checkBox3.Enabled = state & RC3EXIST;
-            checkBox4.Enabled = state & RC4EXIST;
+            checkBoxRC1.Enabled = state & RC1EXIST;
+            checkBoxRC2.Enabled = state & RC2EXIST;
+            checkBoxRC3.Enabled = state & RC3EXIST;
+            checkBoxRC4.Enabled = state & RC4EXIST;
         }
 
         private void StartWNetWakeUpProcess() {
             logger("-> StartWNetWakeUpProcess()");
             label1.Text = "Starting WNetWakeUp.exe";
             string WNETWAKEUP_ARG = CombinedString(@" -Remote \\127.0.0.1 -SharPath Project$ -", SELECTED_RC, " -f ", RCSIM_FILE);
+            logger("WNETWAKEUP_ARG = ", WNETWAKEUP_ARG);
             Process mainProcess = new Process();
             mainProcess.StartInfo.FileName = WNETWAKEUP_FILE;
             mainProcess.StartInfo.Arguments = WNETWAKEUP_ARG;
