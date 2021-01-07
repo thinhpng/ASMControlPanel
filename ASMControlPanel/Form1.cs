@@ -99,16 +99,16 @@ namespace ASMControlPanel {
             logger("-> GetRCSimStatus()");
             RCSIM_FILE = new DirectoryInfo(DEFAULT_RCSIM_DIR).GetFiles("PMC*_Sim.txt").OrderByDescending(f => f.LastWriteTime).First().Name;
             if (RCSIM_FILE.Contains("PMC1")) {
-                checkBoxRC1.Checked = true;
+                RC1SimulationCheckBox.Checked = true;
                 SELECTED_RC = "PMC1";
             } else if (RCSIM_FILE.Contains("PMC2")) {
-                checkBoxRC2.Checked = true;
+                RC2SimulationCheckBox.Checked = true;
                 SELECTED_RC = "PMC2";
             } else if (RCSIM_FILE.Contains("PMC3")) {
-                checkBoxRC3.Checked = true;
+                RC3SimulationCheckBox.Checked = true;
                 SELECTED_RC = "PMC3";
             } else if (RCSIM_FILE.Contains("PMC4")) {
-                checkBoxRC4.Checked = true;
+                RC4SimulationCheckBox.Checked = true;
                 SELECTED_RC = "PMC4";
             }
             logger("SELECTED_RC: ", SELECTED_RC);
@@ -210,16 +210,16 @@ namespace ASMControlPanel {
                     logger("RC4 available! ", P4FTXT);
                 }
             }
-            checkBoxRC1.Enabled = RC1EXIST;
-            checkBoxRC2.Enabled = RC2EXIST;
-            checkBoxRC3.Enabled = RC3EXIST;
-            checkBoxRC4.Enabled = RC4EXIST;
+            RC1SimulationCheckBox.Enabled = RC1EXIST;
+            RC2SimulationCheckBox.Enabled = RC2EXIST;
+            RC3SimulationCheckBox.Enabled = RC3EXIST;
+            RC4SimulationCheckBox.Enabled = RC4EXIST;
         }
 
         private void PrepareToolVncSelection() {
             logger("-> PrepareToolVncSelection()");
             DirectoryInfo dirInfo = new DirectoryInfo(@".\ASM");
-            dirInfo.GetFiles("*.vnc").ToList().ForEach(f => comboBox3.Items.Add(f.Name));
+            dirInfo.GetFiles("*.vnc").ToList().ForEach(f => VncToolListComboBox.Items.Add(f.Name));
         }
 
         string UNCtoMappedDrive(string uncPath) {
@@ -268,24 +268,24 @@ namespace ASMControlPanel {
         private void PrepareToolMapSelection() {
             logger("-> PrepareToolMapSelection()");
             Dictionary<string, string> mappedDrives = GetMappedDrives();
-            button2.Enabled = true; //Map Button
-            button4.Enabled = false; //UnMap Button
+            MapToolButton.Enabled = true; //Map Button
+            UnMapToolButton.Enabled = false; //UnMap Button
 
             using (StreamReader inFile = new StreamReader(ASM_TOOLS_FILE, false)) {
-                comboBox2.Items.Clear(); //refresh  
+                ToolMapComboBox.Items.Clear(); //refresh  
                 string line = inFile.ReadLine(); //throw away the header line
                 while ((line = inFile.ReadLine()) != null && line.Substring(0, 2) != "//") {
                     //logger("Processing line: ", line);
                     string tool = line.TrimEnd(' ', '\t');
-                    comboBox2.Items.Add(tool);
+                    ToolMapComboBox.Items.Add(tool);
                     foreach (var d in mappedDrives) {
                         if (d.Value.Contains(tool)) {
-                            comboBox2.SelectedItem = tool;
+                            ToolMapComboBox.SelectedItem = tool;
                             //SELECTED_MAPTOOL = tool;
                             logger(SELECTED_MAPTOOL, " mapped to Drive: ", d.Key);
-                            label3.Text = CombinedString(SELECTED_MAPTOOL, " mapped to Drive: ", d.Key);
-                            button2.Enabled = false; //Map Button
-                            button4.Enabled = true; //UnMap Button
+                            MappingStatusLabel.Text = CombinedString(SELECTED_MAPTOOL, " mapped to Drive: ", d.Key);
+                            MapToolButton.Enabled = false; //Map Button
+                            UnMapToolButton.Enabled = true; //UnMap Button
                         }
                     }
                 }
@@ -295,22 +295,22 @@ namespace ASMControlPanel {
         private void PrepareProjectSelection() {
             logger("-> PrepareProjectSelection()");
             try {
-                comboBox1.Items.Clear(); //refresh        
+                ProjectComboBox.Items.Clear(); //refresh        
                 if (Directory.Exists(DEFAULT_PROJECT_DIR)) {
-                    comboBox1.Items.Add(DEFAULT_PROJECT_DIR);
-                    logger("Added comboBox1[0] with ", DEFAULT_PROJECT_DIR);
+                    ProjectComboBox.Items.Add(DEFAULT_PROJECT_DIR);
+                    logger("Added ProjectComboBox[0] with ", DEFAULT_PROJECT_DIR);
                 }
                 string[] projects = Directory.GetDirectories(@"c:\", "*Project_*", SearchOption.TopDirectoryOnly);
                 foreach (string project in projects) {
-                    comboBox1.Items.Add(project);
+                    ProjectComboBox.Items.Add(project);
                 }
 
                 if (String.IsNullOrEmpty(LASTSELECTED)) { //ASMControlPanel just starts up. Default selection is the first item in the list  
                     if (Directory.Exists(DEFAULT_PROJECT_DIR)) {
-                        comboBox1.SelectedItem = DEFAULT_PROJECT_DIR;
+                        ProjectComboBox.SelectedItem = DEFAULT_PROJECT_DIR;
                         //GetPlatformInfo(DEFAULT_PROJECT_DIR);
                     } else {
-                        comboBox1.SelectedIndex = 0;
+                        ProjectComboBox.SelectedIndex = 0;
                     }                    
                     logger("Initial LASTSELECTED: ", LASTSELECTED);
                 } else {
@@ -328,10 +328,10 @@ namespace ASMControlPanel {
 
                     if (IsRCSimRunning()) {
                         RCSIMSelection(true);
-                        comboBox1.Enabled = false;
+                        ProjectComboBox.Enabled = false;
                     }
 
-                    label1.Text = CombinedString(RUNNING_PROJECT, " is running");
+                    RunningProjectLabel.Text = CombinedString(RUNNING_PROJECT, " is running");
                     SetRCSIMFeatureVisible(false);
                 } else {
                     StartStop_Button.Text = "START";
@@ -339,8 +339,8 @@ namespace ASMControlPanel {
                     SetRCSIMFeatureVisible(true);
                 }
                 SetRCCheckboxes(fileNames);
-                label1.BackColor = Color.LightBlue;
-                label1.Refresh();
+                RunningProjectLabel.BackColor = Color.LightBlue;
+                RunningProjectLabel.Refresh();
             } catch (Exception e) {
                 logger("Exception: ", e.ToString());
             }
@@ -399,13 +399,13 @@ namespace ASMControlPanel {
                     RUNNING_PROJECT = Path.Combine(@"c:\", GenerateStandardFormatProjectFolderName());
                     logger("Now current RUNNING_PROJECT: ", RUNNING_PROJECT);
                 }
-                label1.Text = CombinedString(RUNNING_PROJECT, " is currently active");
-                label1.Refresh();
+                RunningProjectLabel.Text = CombinedString(RUNNING_PROJECT, " is currently active");
+                RunningProjectLabel.Refresh();
             }
         }
 
         private void label1_TextChanged(object sender, EventArgs e) {
-            logger("Label Text Changed: ", label1.Text);
+            logger("Label Text Changed: ", RunningProjectLabel.Text);
         }
 
         private void label1_Click(object sender, EventArgs e) {
@@ -414,10 +414,10 @@ namespace ASMControlPanel {
             //CreateKillPMCBatFile();
         }
 
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e) {
+        private void ProjectComboBox_SelectedIndexChanged(object sender, EventArgs e) {
             StartStop_Button.Text = "START";
             StartStop_Button.BackColor = Color.LawnGreen;
-            LASTSELECTED = comboBox1.SelectedItem.ToString();            
+            LASTSELECTED = ProjectComboBox.SelectedItem.ToString();            
             logger("LASTSELECTED: ", LASTSELECTED);
             SetAvailableRCByProject(LASTSELECTED);
 
@@ -442,9 +442,9 @@ namespace ASMControlPanel {
                 logger("No need to swap projects");
                 return;
             }
-            label1.Text = "Swapping Projects...";
-            label1.BackColor = Color.LightGray;
-            label1.Refresh();
+            RunningProjectLabel.Text = "Swapping Projects...";
+            RunningProjectLabel.BackColor = Color.LightGray;
+            RunningProjectLabel.Refresh();
             StartStop_Button.Enabled = false;
 
             try {
@@ -471,8 +471,8 @@ namespace ASMControlPanel {
                 }
 
                 if (!String.IsNullOrEmpty(RUNNING_PROJECT)) {
-                    if (comboBox1.FindString(RUNNING_PROJECT) < 1) {
-                        comboBox1.Items.Add(RUNNING_PROJECT); //Add it back to selection list so it can be selectable  
+                    if (ProjectComboBox.FindString(RUNNING_PROJECT) < 1) {
+                        ProjectComboBox.Items.Add(RUNNING_PROJECT); //Add it back to selection list so it can be selectable  
                         logger("Added to selection list: ", RUNNING_PROJECT);
                     } else {
                         logger(RUNNING_PROJECT, " already exists in selection list !");
@@ -646,8 +646,8 @@ namespace ASMControlPanel {
                 if (File.Exists(oldFile) && oldFile != newFile) {
                     File.Delete(oldFile);
                     logger("Deleted oldFile: ", oldFile);
-                    comboBox1.Items.Remove(RUNNING_PROJECT);
-                    comboBox1.Refresh();
+                    ProjectComboBox.Items.Remove(RUNNING_PROJECT);
+                    ProjectComboBox.Refresh();
                 } else {
                     logger("Not deleting file: ", oldFile);
                 }
@@ -668,8 +668,8 @@ namespace ASMControlPanel {
             logger("RUNNING_PROJECT: ", RUNNING_PROJECT, " vs. LASTSELECTED: ", LASTSELECTED);
 
             if (StartStop_Button.Text == "START") { //There was a click on "START" button
-                if (comboBox1.Enabled)
-                    comboBox1.Enabled = false; //No new selection allowed at this time.
+                if (ProjectComboBox.Enabled)
+                    ProjectComboBox.Enabled = false; //No new selection allowed at this time.
 
                 //if (RUNNING_PROJECT == LASTSELECTED)
                 if (isSelectedProjectCurrentProject()) {
@@ -708,12 +708,12 @@ namespace ASMControlPanel {
                     SwapProject(needSwap); //Swap only if the selected one is NOT the current c:\Project one
                     StartMainExecutableFile(LASTSELECTED);
                 }
-                label1.Text = CombinedString(RUNNING_PROJECT, " is running");
-                label1.Refresh();
+                RunningProjectLabel.Text = CombinedString(RUNNING_PROJECT, " is running");
+                RunningProjectLabel.Refresh();
                 StartStop_Button.Text = "STOP";
                 StartStop_Button.BackColor = Color.Salmon;
-                comboBox1.SelectedItem = DEFAULT_PROJECT_DIR;
-                comboBox1.Refresh();
+                ProjectComboBox.SelectedItem = DEFAULT_PROJECT_DIR;
+                ProjectComboBox.Refresh();
                 eiStatus = "EI START";
             } else { //There was a click on "STOP" button
                 needSwap = true; //Ready for newly possible project change in user's selection 
@@ -725,10 +725,10 @@ namespace ASMControlPanel {
 
                 StartStop_Button.Text = "START";
                 StartStop_Button.BackColor = Color.LawnGreen;
-                comboBox1.SelectedItem = DEFAULT_PROJECT_DIR;
+                ProjectComboBox.SelectedItem = DEFAULT_PROJECT_DIR;
 
-                label1.Text = "Select Project To Run ...";
-                comboBox1.Enabled = true;
+                RunningProjectLabel.Text = "Select Project To Run ...";
+                ProjectComboBox.Enabled = true;
                 RcSimOption = true;
                 RCSIMSelection(false);
                 eiStatus = "EI STOP";
@@ -754,9 +754,9 @@ namespace ASMControlPanel {
             StartStop_Button.Enabled = false;
             StartStop_Button.BackColor = Color.LightGray;
             StartStop_Button.Refresh();
-            label1.Text = CombinedString("Starting ", project);
-            label1.BackColor = Color.LightGray;
-            label1.Refresh();
+            RunningProjectLabel.Text = CombinedString("Starting ", project);
+            RunningProjectLabel.BackColor = Color.LightGray;
+            RunningProjectLabel.Refresh();
             StartStop_Button.IsAccessible = false;
 
             Process mainProcess = new Process();
@@ -766,9 +766,9 @@ namespace ASMControlPanel {
             mainProcess.Start();
             Thread.Sleep(60000);
             StartStop_Button.Enabled = true;
-            label1.Text = "Select Project To Run ...";
-            label1.BackColor = Color.LightBlue;
-            label1.Refresh();
+            RunningProjectLabel.Text = "Select Project To Run ...";
+            RunningProjectLabel.BackColor = Color.LightBlue;
+            RunningProjectLabel.Refresh();
             RUNNING_PROJECT = LASTSELECTED;
             logger("Updated RUNNING_PROJECT to ", RUNNING_PROJECT);
         }
@@ -778,9 +778,9 @@ namespace ASMControlPanel {
             StartStop_Button.Enabled = false;
             StartStop_Button.BackColor = Color.LightGray;
             StartStop_Button.Refresh();
-            label1.Text = CombinedString("Stopping ", project);
-            label1.BackColor = Color.LightGray;
-            label1.Refresh();
+            RunningProjectLabel.Text = CombinedString("Stopping ", project);
+            RunningProjectLabel.BackColor = Color.LightGray;
+            RunningProjectLabel.Refresh();
 
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.CreateNoWindow = true;
@@ -795,9 +795,9 @@ namespace ASMControlPanel {
             stopProcess.Close();
             Thread.Sleep(5000);
             StartStop_Button.Enabled = true;
-            label1.Text = "Select Project To Run ...";
-            label1.BackColor = Color.LightBlue;
-            label1.Refresh();
+            RunningProjectLabel.Text = "Select Project To Run ...";
+            RunningProjectLabel.BackColor = Color.LightBlue;
+            RunningProjectLabel.Refresh();
         }
 
         private void mainProcess_Exited(object sender, System.EventArgs e) {
@@ -845,7 +845,7 @@ namespace ASMControlPanel {
             SELECTED_RC = "PMC1";
             MODULE = ".p1f.txt";
             if (StartStop_Button.Text == "START")
-                RCCheckBoxManager(checkBoxRC1.Checked, PLATFORM + MODULE, e);
+                RCCheckBoxManager(RC1SimulationCheckBox.Checked, PLATFORM + MODULE, e);
         }
 
         private void checkBoxRC2_CheckedChanged(object sender, EventArgs e) {
@@ -853,7 +853,7 @@ namespace ASMControlPanel {
             SELECTED_RC = "PMC2";
             MODULE = ".p2f.txt";
             if (StartStop_Button.Text == "START")
-                RCCheckBoxManager(checkBoxRC2.Checked, PLATFORM + MODULE, e);
+                RCCheckBoxManager(RC2SimulationCheckBox.Checked, PLATFORM + MODULE, e);
         }
 
         private void checkBoxRC3_CheckedChanged(object sender, EventArgs e) {
@@ -861,7 +861,7 @@ namespace ASMControlPanel {
             SELECTED_RC = "PMC3";
             MODULE = ".p3f.txt";
             if (StartStop_Button.Text == "START")
-                RCCheckBoxManager(checkBoxRC3.Checked, PLATFORM + MODULE, e);
+                RCCheckBoxManager(RC3SimulationCheckBox.Checked, PLATFORM + MODULE, e);
         }
 
         private void checkBoxRC4_CheckedChanged(object sender, EventArgs e) {
@@ -869,7 +869,7 @@ namespace ASMControlPanel {
             SELECTED_RC = "PMC4";
             MODULE = ".p4f.txt";
             if (StartStop_Button.Text == "START")
-                RCCheckBoxManager(checkBoxRC4.Checked, PLATFORM + MODULE, e);
+                RCCheckBoxManager(RC4SimulationCheckBox.Checked, PLATFORM + MODULE, e);
         }
 
         private void RCCheckBoxManager(bool option, string configFile, EventArgs e) { //false: Reset, true: Set
@@ -883,21 +883,21 @@ namespace ASMControlPanel {
             //PMSimulation(option);
 
             if (option) {
-                comboBox1.Enabled = false;
-                if (checkBoxRC1.CheckState == 0 || (SELECTED_RC == "PMC1" && !File.Exists(RC_CONFIG_FILE))) {
-                    checkBoxRC1.Enabled = false;
+                ProjectComboBox.Enabled = false;
+                if (RC1SimulationCheckBox.CheckState == 0 || (SELECTED_RC == "PMC1" && !File.Exists(RC_CONFIG_FILE))) {
+                    RC1SimulationCheckBox.Enabled = false;
                 }
 
-                if (checkBoxRC2.CheckState == 0 || (SELECTED_RC == "PMC2" && !File.Exists(RC_CONFIG_FILE))) {
-                    checkBoxRC2.Enabled = false;
+                if (RC2SimulationCheckBox.CheckState == 0 || (SELECTED_RC == "PMC2" && !File.Exists(RC_CONFIG_FILE))) {
+                    RC2SimulationCheckBox.Enabled = false;
                 }
 
-                if (checkBoxRC3.CheckState == 0 || (SELECTED_RC == "PMC3" && !File.Exists(RC_CONFIG_FILE))) {
-                    checkBoxRC3.Enabled = false;
+                if (RC3SimulationCheckBox.CheckState == 0 || (SELECTED_RC == "PMC3" && !File.Exists(RC_CONFIG_FILE))) {
+                    RC3SimulationCheckBox.Enabled = false;
                 }
 
-                if (checkBoxRC4.CheckState == 0 || (SELECTED_RC == "PMC4" && !File.Exists(RC_CONFIG_FILE))) {
-                    checkBoxRC4.Enabled = false;
+                if (RC4SimulationCheckBox.CheckState == 0 || (SELECTED_RC == "PMC4" && !File.Exists(RC_CONFIG_FILE))) {
+                    RC4SimulationCheckBox.Enabled = false;
                 }
 
                 if (Directory.Exists(DEFAULT_PROJECT_DIR) && StartStop_Button.Text == "START")
@@ -1036,7 +1036,7 @@ namespace ASMControlPanel {
 
         private void StartAsmUtilsBatFile(string toolName, string cmd) {
             logger("-> StartAsmUtilsBatFile(", toolName, ")");
-            label1.Text = "Starting AsmUtils.bat";
+            RunningProjectLabel.Text = "Starting AsmUtils.bat";
             string AsmUtils_Arg = CombinedString(cmd, " ", toolName);
             Process mainProcess = new Process();
             mainProcess.StartInfo.FileName = ASM_UTILS_FILE;
@@ -1048,14 +1048,14 @@ namespace ASMControlPanel {
             mainProcess.Start();
 
             //if (StartStop_Button.Text == "STOP")
-            //    label1.Text = CombinedString(RUNNING_PROJECT, " is running");
+            //    RunningProjectLabel.Text = CombinedString(RUNNING_PROJECT, " is running");
             //else
-            //    label1.Text = "WNetWakeUp started. Click START to run your Project!";
+            //    RunningProjectLabel.Text = "WNetWakeUp started. Click START to run your Project!";
         }
 
         private void RunStartPMBatFile() {
             logger("-> RunStartPMBatFile()");
-            label1.Text = "Starting " + STARTPMBAT;
+            RunningProjectLabel.Text = "Starting " + STARTPMBAT;
             Process mainProcess = new Process();
             mainProcess.StartInfo.FileName = STARTPMBAT;
             mainProcess.StartInfo.WorkingDirectory = DEFAULT_RCSIM_DIR;
@@ -1066,7 +1066,7 @@ namespace ASMControlPanel {
 
         private void StartKillRCBatFile() {
             logger("-> StartKillRCBatFile()");
-            label1.Text = "Starting KillRC.Bat";
+            RunningProjectLabel.Text = "Starting KillRC.Bat";
             Process mainProcess = new Process();
             mainProcess.StartInfo.FileName = KILL_RC_BAT_FILE;
             mainProcess.StartInfo.WorkingDirectory = DEFAULT_RCSIM_DIR;
@@ -1081,16 +1081,16 @@ namespace ASMControlPanel {
             logger("-> RCSIMSelection(", selection, ")");
             switch (SELECTED_RC) {
                 case "PMC1":
-                    checkBoxRC1.Checked = selection;
+                    RC1SimulationCheckBox.Checked = selection;
                     break;
                 case "PMC2":
-                    checkBoxRC2.Checked = selection;
+                    RC2SimulationCheckBox.Checked = selection;
                     break;
                 case "PMC3":
-                    checkBoxRC3.Checked = selection;
+                    RC3SimulationCheckBox.Checked = selection;
                     break;
                 case "PMC4":
-                    checkBoxRC4.Checked = selection;
+                    RC4SimulationCheckBox.Checked = selection;
                     break;
             }
         }
@@ -1098,16 +1098,16 @@ namespace ASMControlPanel {
         private void SetRCSIMFeatureVisible(bool state) { //false: invisible, true: visible
             logger("-> SetRCSIMFeatureVisible(", state, ")");
             //RCSIMSelection(true);
-            label2.Enabled = state;
-            checkBoxRC1.Enabled = state & RC1EXIST;
-            checkBoxRC2.Enabled = state & RC2EXIST;
-            checkBoxRC3.Enabled = state & RC3EXIST;
-            checkBoxRC4.Enabled = state & RC4EXIST;
+            RCSimulationCheckBoxesLabel.Enabled = state;
+            RC1SimulationCheckBox.Enabled = state & RC1EXIST;
+            RC2SimulationCheckBox.Enabled = state & RC2EXIST;
+            RC3SimulationCheckBox.Enabled = state & RC3EXIST;
+            RC4SimulationCheckBox.Enabled = state & RC4EXIST;
         }
 
         private void StartWNetWakeUpProcess() {
             logger("-> StartWNetWakeUpProcess()");
-            label1.Text = "Starting WNetWakeUp.exe";
+            RunningProjectLabel.Text = "Starting WNetWakeUp.exe";
             string WNETWAKEUP_ARG = CombinedString(@" -Remote \\127.0.0.1 -SharPath Project$ -", SELECTED_RC, " -f ", RCSIM_FILE);
             logger("WNETWAKEUP_ARG = ", WNETWAKEUP_ARG);
             Process mainProcess = new Process();
@@ -1119,9 +1119,9 @@ namespace ASMControlPanel {
             mainProcess.Start();
 
             if (StartStop_Button.Text == "STOP")
-                label1.Text = CombinedString(RUNNING_PROJECT, " is running");
+                RunningProjectLabel.Text = CombinedString(RUNNING_PROJECT, " is running");
             else
-                label1.Text = "WNetWakeUp started. Click START to run your Project!";
+                RunningProjectLabel.Text = "WNetWakeUp started. Click START to run your Project!";
         }
 
         private void CreatePMStartBatFile() {
@@ -1223,7 +1223,7 @@ namespace ASMControlPanel {
         private void comboBox2_SelectedIndexChanged(object sender, EventArgs e) {
             logger("-> comboBox2_SelectedIndexChanged()");
 
-            SELECTED_MAPTOOL = comboBox2.SelectedItem.ToString();
+            SELECTED_MAPTOOL = ToolMapComboBox.SelectedItem.ToString();
             logger("SELECTED_MAPTOOL: <", SELECTED_MAPTOOL, ">");
         }
 
@@ -1234,7 +1234,7 @@ namespace ASMControlPanel {
 
                 if (!String.IsNullOrEmpty(SELECTED_MAPTOOL)) {
                     StartAsmUtilsBatFile(SELECTED_MAPTOOL, "-m");
-                    button2.Enabled = false;
+                    MapToolButton.Enabled = false;
                 }
 
                 DriveInfo[] allDrives = DriveInfo.GetDrives();
@@ -1243,9 +1243,9 @@ namespace ASMControlPanel {
                 IEnumerable<string> aOnlyNumbers = postdrives.Except(predrives);
                 foreach (var n in aOnlyNumbers) {
                     logger(SELECTED_MAPTOOL, " mapped to Drive: ", n);
-                    label3.Text = CombinedString(SELECTED_MAPTOOL, " mapped to Drive: ", n.Substring(0, 1));
-                    button2.Enabled = false; //Map Button
-                    button4.Enabled = true; //UnMap Button  
+                    MappingStatusLabel.Text = CombinedString(SELECTED_MAPTOOL, " mapped to Drive: ", n.Substring(0, 1));
+                    MapToolButton.Enabled = false; //Map Button
+                    UnMapToolButton.Enabled = true; //UnMap Button  
                 }
             } catch (Exception ex) {
                 logger("EXCEPTION: ", ex.Message);
@@ -1263,9 +1263,9 @@ namespace ASMControlPanel {
                 IEnumerable<string> aOnlyNumbers = predrives.Except(postdrives);
                 foreach (var n in aOnlyNumbers) {
                     logger(SELECTED_MAPTOOL, " Unmapped to Drive: ", n);
-                    label3.Text = CombinedString(SELECTED_MAPTOOL, " Unmapped to Drive: ", n.Substring(0, 1));
-                    button2.Enabled = true; //Map Button
-                    button4.Enabled = false; //UnMap Button                    
+                    MappingStatusLabel.Text = CombinedString(SELECTED_MAPTOOL, " Unmapped to Drive: ", n.Substring(0, 1));
+                    MapToolButton.Enabled = true; //Map Button
+                    UnMapToolButton.Enabled = false; //UnMap Button                    
                 }
             }
         }
@@ -1279,7 +1279,7 @@ namespace ASMControlPanel {
         }
 
         private void comboBox3_SelectedIndexChanged(object sender, EventArgs e) {
-            SELECTED_VNCTOOL = comboBox3.SelectedItem.ToString();
+            SELECTED_VNCTOOL = VncToolListComboBox.SelectedItem.ToString();
             logger("-> ToolVncSelected : ", SELECTED_VNCTOOL);
         }
 
@@ -1290,7 +1290,7 @@ namespace ASMControlPanel {
 
         private void StartVncToTool(string vncToolFile) {
             logger("-> StartVncToTool(", vncToolFile, ")");
-            label4.Text = CombinedString("Starting VNC to ", vncToolFile);
+            VncStatusLabel.Text = CombinedString("Starting VNC to ", vncToolFile);
             Process mainProcess = new Process();
             mainProcess.StartInfo.FileName = Path.Combine(Directory.GetCurrentDirectory(), @".\ASM", vncToolFile);
             mainProcess.StartInfo.WorkingDirectory = Directory.GetCurrentDirectory();
